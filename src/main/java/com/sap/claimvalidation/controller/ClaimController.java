@@ -49,7 +49,7 @@ public class ClaimController {
              //saving notofication
             Notification notification=new Notification();
             notification.setClaimId(claimResponse.getId());
-            notification.setDescription("A claim has been raised by dealer "+claim.getVersion().getSalesOrganization()+" for amount "+claim.getItem().getAmount());
+            notification.setDescription("A claim has been raised by customer "+claim.getHeader().getCustomer()+" for amount "+claim.getItem().getAmount());
             notification.setOrganisation(claim.getVersion().getPurchasingOrganization());
             notification.setTitle("New Claim raised");
             notification.setViewed(false);
@@ -69,7 +69,7 @@ public class ClaimController {
     }
 
     @GetMapping("/claim/getClaim/{claimId}")
-    public ResponseEntity<Claim> getClaimById(@PathVariable(value = "claimID") String claimId){
+    public ResponseEntity<ClaimResponseDto> getClaimById(@PathVariable(value = "claimID") String claimId){
         return new ResponseEntity<>(claimService.getClaimById(claimId),HttpStatus.OK);
     }
     @DeleteMapping("/claim/deleteClaim/{claimId}")
@@ -81,29 +81,30 @@ public class ClaimController {
     }
 
     @PutMapping("/claim/updateClaim/{claimId}")
-    public ResponseEntity<Claim> updateClaim(@RequestBody ClaimRequestDto claim, @PathVariable(value = "claimId") String claimId)
+    public ResponseEntity<ClaimResponseDto> updateClaim(@RequestBody ClaimRequestDto claim, @PathVariable(value = "claimId") String claimId)
     {
         Notification notification=new Notification();
         notification.setClaimId(claimId);
-        notification.setDescription("A claim has been updated and resubmitted by dealer "+claim.getVersion().getSalesOrganization()+" for amount "+claim.getItem().getAmount());
+        notification.setDescription("A claim has been updated and resubmitted by customer "+claim.getHeader().getCustomer()+" for amount "+claim.getItem().getAmount());
         notification.setOrganisation(claim.getVersion().getPurchasingOrganization());
         notification.setTitle("Claim Updated");
         notification.setViewed(false);
         notification.setCreatedAt(new Date().toString());
         notificationService.addNotification(notification);
-        String itemId=this.claimService.getClaimById(claimId).getItem_id();
+        ClaimResponseDto claimRes=claimService.getClaimById(claimId);
+        String itemId=claimRes.getItem().getId();
         ItemRequestDto item=claim.getItem();
          this.itemService.updateItem(item,itemId);
 
-        String versionId=this.claimService.getClaimById(claimId).getVersion_id();
+        String versionId=claimRes.getVersion().getId();
         VersionRequestDto version= claim.getVersion();
         this.versionService.updateVersion(version,versionId);
 
-        String headerId=this.claimService.getClaimById(claimId).getHeader_id();
+        String headerId=claimRes.getHeader().getId();
         HeaderRequestDto header=claim.getHeader();
         this.headerService.updateHeader(header,headerId);
 
-        return new ResponseEntity<>(claimService.getClaimById(claimId),HttpStatus.OK);
+        return new ResponseEntity<>(claimRes,HttpStatus.OK);
 
 
 

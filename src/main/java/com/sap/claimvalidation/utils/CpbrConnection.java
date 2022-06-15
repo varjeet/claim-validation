@@ -42,32 +42,55 @@ public class CpbrConnection {
         return builder.build();
     }
 
-    public List<Result> setValidationRule(Validation validation) throws JsonProcessingException {
+    public List<ResultDetail> setValidationRule(Validation validation) throws JsonProcessingException {
 
-            triggerRule(new RestTemplate(), validation);
-           List<Result> results= stub(validation);
+        List<ResultDetail> results= triggerRules(validation);
            return results;
     }
-    public CommandLineRunner triggerRule(RestTemplate restTemplate,Validation validation)  {
-        return args -> {
 
 
-            String payload = objectMapper.writeValueAsString(validation);
 
-            log.debug(payload);
 
-            String accessToken = getAccessToken(restTemplate);
 
+
+    public List<ResultDetail> trigerRules(Validation validation) throws JsonProcessingException {
+        Claim claim= validation.getVocabulary();
+        Item item= claim.getItem();
+        Result result=new Result();
+        Version version=claim.getVersion();
+        Header header=claim.getHeader();
+        RestTemplate  restTemplate=new RestTemplate();
+        List<ResultDetail> claimRes=new ArrayList<>();
+
+
+        try {
+            String accessToken=getAccessToken(restTemplate);
             String url = "https://bpmruleruntime.cfapps.eu10.hana.ondemand.com/rules-service/rest/v2/workingset-rule-services";
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
             headers.setBearerAuth(accessToken);
-
             HttpEntity<String> request =
-                    new HttpEntity<String>(payload, headers);
-            ResponseEntity<String> responseEntity = restTemplate.exchange(url, HttpMethod.POST, request, String.class);
-            log.info(responseEntity.getBody());
-        };
+                new HttpEntity<String>(validation.toString(), headers);
+              String claimRes1 =
+                restTemplate.postForObject(url, request, String.class);
+              JsonNode root = objectMapper.readTree(claimRes1);
+
+            for(int i=0;i<root.size();i++)
+            {
+                ResultDetail resultDetail=new ResultDetail();
+                resultDetail.setSeverity(root.get(0).findValuesAsText("severity").get(0));
+                resultDetail.setMessageClassId(root.get(0).findValuesAsText("messageClassId").get(0));
+                resultDetail.setMessage(root.get(0).findValuesAsText("message").get(0));
+                claimRes.add(resultDetail);
+            }
+
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+        }
+        return claimRes;
+
     }
 
     private String getAccessToken(RestTemplate restTemplate) throws UnsupportedEncodingException, JsonProcessingException {
@@ -119,14 +142,56 @@ public class CpbrConnection {
 
 
 
-    public List<Result> stub(Validation validation) throws JsonProcessingException {
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    public List<ResultDetail> triggerRules(Validation validation) throws JsonProcessingException {
         Claim claim= validation.getVocabulary();
         Item item= claim.getItem();
         Result result=new Result();
         Version version=claim.getVersion();
         Header header=claim.getHeader();
 
-        String uri="http://localhost:8281/validate";
+        String uri="http://localhost:8281/bpmruleruntime.cfapps.eu10.hana.ondemand.com/rules-service/rest/v2/workingset-rule-services";
         RestTemplate  restTemplate=new RestTemplate();
 
         HttpHeaders headers = new HttpHeaders();
@@ -158,21 +223,19 @@ public class CpbrConnection {
         claimObject.put("sourceObjectNumber",header.getObject_number());
         HttpEntity<String> request =
                 new HttpEntity<String>(claimObject.toString(), headers);
-//        ArrayList<Result> claimRes =
-//                restTemplate.postForObject(uri, request, ArrayList.class);
 
         String claimRes1 =
                 restTemplate.postForObject(uri, request, String.class);
         JsonNode root = objectMapper.readTree(claimRes1);
-        List<Result> claimRes =new ArrayList<>();
+        List<ResultDetail> claimRes =new ArrayList<>();
         for(int i=0;i<root.size();i++)
         {
 
-//         Result resultTemp=new Result();
-//         resultTemp.setSeverity(root.get(0).findValuesAsText("severity").get(0));
-//         resultTemp.setMessageClassId(root.get(0).findValuesAsText("messageClassId").get(0));
-//         resultTemp.setMessage(root.get(0).findValuesAsText("message").get(0));
-//         claimRes.add(resultTemp);
+         ResultDetail resultDetail=new ResultDetail();
+         resultDetail.setSeverity(root.get(i).findValuesAsText("severity").get(0));
+         resultDetail.setMessageClassId(root.get(i).findValuesAsText("messageClassId").get(0));
+         resultDetail.setMessage(root.get(i).findValuesAsText("message").get(0));
+         claimRes.add(resultDetail);
         }
 
         return claimRes;

@@ -7,10 +7,8 @@ import com.sap.claimvalidation.repository.ClaimRepository;
 import com.sap.claimvalidation.utils.ObjectMapperUtils;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
+import javax.persistence.Column;
+import java.util.*;
 
 @Service
 public class ClaimService {
@@ -27,6 +25,11 @@ public class ClaimService {
 
     public Claim addClaim(Claim claim)
     {
+        Random r = new Random();
+        int low = 10000;
+        int high = 99999;
+        int result = r.nextInt(high-low) + low;
+        claim.setClaim_number(result);
         Claim claimResponse= this.claimRepository.save(claim);
 
         return claimResponse;
@@ -38,11 +41,19 @@ public class ClaimService {
 
        return claimResponseDtos;
     }
-    public Claim getClaimById(String id){
+    public ClaimResponseDto getClaimById(String id){
         Optional<Claim> Optionalitem=this.claimRepository.findById(id);
         Claim claim= Optionalitem.get();
-        return claim;
+       ClaimResponseDto claimResponseDto = ObjectMapperUtils.map(claim, ClaimResponseDto.class);
+        return claimResponseDto;
     }
+//    public ClaimResponseDto getClaimById1(String id){
+//        List<Claim> claims= this.claimRepository.findAll();
+//        List<ClaimResponseDto> claimResponseDtos = ObjectMapperUtils.mapAll(claims, ClaimResponseDto.class);
+//        ClaimResponseDto claimResponseDto=  claimResponseDtos.stream().filter(claimResponseDto1 -> claimResponseDto1.getId().equals(id)).findFirst().get();
+//        return claimResponseDto;
+//    }
+
 
     public Claim getClaimByVersionAndItem(String versionId,String itemId){
         Claim claim=this.claimRepository.findClaimByVersionIdAndItemId(versionId,itemId);

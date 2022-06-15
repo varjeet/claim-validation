@@ -47,7 +47,7 @@ public class VersionService {
         Version version= ObjectMapperUtils.map(version1,Version.class);
         Version versionResponse=getVersionById(versionId);
         versionResponse.setId(versionId);
-        versionResponse.setVersionCategory(version.getVersionCategory());
+        versionResponse.setVersionCategory(versionResponse.getVersionCategory());
         versionResponse.setPersonResponsible(version.getPersonResponsible());
         versionResponse.setPurchasingOrganization(version.getPurchasingOrganization());
         versionResponse.setDistributionChannel(version.getDistributionChannel());

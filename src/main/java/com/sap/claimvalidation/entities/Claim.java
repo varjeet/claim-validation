@@ -28,6 +28,9 @@ public class Claim {
     private Item item;
 
     @Column
+    private Integer claim_number;
+
+    @Column
     private String version_id;
 
     @OneToOne(cascade = CascadeType.ALL)

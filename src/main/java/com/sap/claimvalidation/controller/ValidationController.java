@@ -2,6 +2,7 @@ package com.sap.claimvalidation.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.sap.claimvalidation.dtos.ClaimDto;
+import com.sap.claimvalidation.dtos.ResultResponseDto;
 import com.sap.claimvalidation.entities.Claim;
 import com.sap.claimvalidation.entities.Item;
 import com.sap.claimvalidation.entities.Result;
@@ -29,7 +30,8 @@ public class ValidationController {
         this.claimService=claimService;
     }
     @PostMapping("v2/claim/validate")
-    public ResponseEntity<Result> validateClaim(@RequestBody ClaimDto claimdto) throws JsonProcessingException {
+    public ResponseEntity<ResultResponseDto> validateClaim(@RequestBody ClaimDto claimdto) throws JsonProcessingException {
+
 
         return new ResponseEntity<>( validationService.validateClaim(claimdto.getId()),HttpStatus.OK);
 

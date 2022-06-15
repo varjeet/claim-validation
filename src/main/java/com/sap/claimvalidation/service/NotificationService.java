@@ -35,6 +35,9 @@ public class NotificationService {
         this.notificationRepository.deleteById(notificationId);
 
     }
+    public List<Notification> getNotificationByOrganization(String org){
+       return this.notificationRepository.findNotificationsByOrganisation(org);
+    }
 
 
 }
